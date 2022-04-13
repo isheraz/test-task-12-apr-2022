@@ -5,9 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
+const mongoose = require('mongoose');
+const Patient = require('./models/patient.js');
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT;
+let pkincrement = 0;
+app.use(express_1.default.json());
 //---------//
 // TO DO...//
 //---------//
@@ -19,16 +23,19 @@ const port = process.env.PORT;
 // Write Tests...
 // Push to Github...
 //------------------//
-//Mongo DB Connections...
-//Require Mongo.
-const { MongoClient, ServerApiVersion } = require('mongodb');
-//Connection URI...
-const uri = "mongodb+srv://hospitalapi123:hospitalapi123@cluster0.wpcbp.mongodb.net/hospitaldata?retryWrites=true&w=majority";
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-client.connect(() => {
-    const collection = client.db("test").collection("devices");
-    client.close();
+// Configuring the database
+const dbConfig = "mongodb+srv://hospitalapi123:hospitalapi123@cluster0.wpcbp.mongodb.net/hospitaldata?retryWrites=true&w=majority";
+mongoose.Promise = global.Promise;
+// Connecting to the database
+mongoose.connect(dbConfig, {
+    useNewUrlParser: true
+}).then(() => {
+    console.log("Successfully connected to the database");
+}).catch(() => {
+    console.log('Could not connect to the database. Exiting now... ');
+    process.exit();
 });
+//asd
 //Base Point...
 app.get('/', (req, res) => {
     res.send('Welcome to Pet Hospital API');
@@ -42,60 +49,110 @@ app.post('/patient/add', (req, res) => {
        3) Owner Name
        4) Owner Address
        5) Owner Phone Number */
+    let input = req.body;
+    console.log(input);
+    let patient = new Patient({
+        _id: pkincrement,
+        petName: input.petName,
+        petType: input.petType,
+        ownerName: input.ownerName,
+        ownerAddress: input.ownerAddress,
+        ownerPhoneNumber: input.ownerPhoneNumber
+    });
+    patient.save().then(() => {
+        console.log('Saved Patient!');
+        pkincrement++;
+    });
 });
 //Get All Patients.....
 app.get('/patient', (req, res) => {
-    res.send('all patients are....');
-});
-//Update Patient Details...
-app.patch('/patient/:id', (req, res) => {
-    let id = req.params.id;
-    res.send('Updated ' + id);
-});
-//Delete Patient Details...
-app.delete('/patient/:id', (req, res) => {
-    let id = req.params.id;
-    res.send('Deleted ' + id);
+    Patient.find().then((result) => {
+        res.send(result);
+    });
 });
 // [OPTIONAL]: Get A Specific Patient!
 app.get('/patient/:id', (req, res) => {
     let id = req.params.id;
-    res.send('Patient ' + id + ' is');
+    res.send('Patient ' + id);
+});
+//Update Patient Details...
+app.patch('/patient/:id', (req, res) => {
+    let identify = req.params.id;
+    let input = req.body;
+    if (input._id) {
+        res.send('Cant Update _id');
+        return false;
+    }
+    Patient.findByIdAndUpdate({ _id: identify }, input).then(() => {
+        return res.send('Updated Patient number ' + identify + '\'s Details');
+    });
+});
+//Delete Patient Details...
+app.delete('/patient/:id', (req, res) => {
+    let identify = req.params.id;
+    let input = req.body;
+    if (input._id) {
+        res.send('Refrain from sending _.id');
+        return false;
+    }
+    Patient.findByIdAndDelete({ _id: identify }, input).then(() => {
+        res.send('Deleted Patient number ' + identify + '\'s Details');
+    });
 });
 // [OPTIONAL]: Get All Appointments!
 app.get('/appointment', (req, res) => {
     res.send('All Appointments Are....');
 });
+//---------------------------Done-Till-Here------------------------//
 //Add an appoinment to an existing Patient...
-app.post('/appointment/:id', (req, res) => {
-    let id = req.params.id;
-    res.send('Added appointment for ' + id);
+app.post('/patient/:id/appointment', (req, res) => {
     //Requires As Body....
     /* 1) Appointment Start Time
-       2) Appointment End Time
-       3) Description
-       4) Fee paid (True / False)
-       5) Amount Paid */
+        2) Appointment End Time
+        3) Description
+        4) Fee paid (True / False)
+        5) Amount Paid */
+    let identify = req.params.id;
+    let inputArr = req.body;
+    if (!(Object.prototype.toString.call(inputArr) == '[object Array]')) {
+        res.send('Error, Please Send an Array Containing The Appointments!');
+        return false;
+    }
+    Patient.findByIdAndUpdate({ _id: identify }, { appointment: inputArr }).then(() => {
+        return res.send('Done Updating the appointments!');
+    });
 });
 //Get A Specific Patient's Appointment...
-app.get('/appointment/:id', (req, res) => {
-    let id = req.params.id;
-    res.send('All the appointment(s) for ' + id);
+app.get('/patient/:id/appointment', (req, res) => {
+    let identify = req.params.id;
+    Patient.findOne({ _id: identify }).then((result) => {
+        res.send(result.appointment);
+    });
 });
-//Update Appointment Details...
-app.patch('/appointment/:id', (req, res) => {
-    let id = req.params.id;
-    res.send('Updated appointment(s) Details for ' + id);
+//Update Appointment Details... // REVISIT!
+app.patch('/patient/:id/appointment', (req, res) => {
+    let identify = req.params.id;
+    let inputArr = req.body;
+    Patient.findByIdAndUpdate({ _id: identify }, { appointment: inputArr }).then(() => {
+        return res.send('Done Updating the appointments!');
+    });
 });
 //Delete Appointment Details...
-app.delete('/appointment/:id', (req, res) => {
-    let id = req.params.id;
-    res.send('Deleted appointment(s) Details for ' + id);
+app.delete('/patient/:id/appointment', (req, res) => {
+    let identify = req.params.id;
+    Patient.findByIdAndUpdate({ _id: identify }, { appointment: [] }).then(() => {
+        return res.send('Done Updating the appointments!');
+    });
 });
 //Get by Date!...
-app.get('/appointment/day/:id', (req, res) => {
-    let date = req.params.id;
-    res.send('Appointments of the date ' + date + 'are...');
+app.get('/appointment/:date/:month/:year', (req, res) => {
+    let date = req.params.date;
+    let month = req.params.month;
+    let year = req.params.year;
+    let dateSorted = date + '/' + month + '/' + year;
+    Patient.findOne({ "appointment.day": dateSorted }).then((results) => {
+        res.send(results);
+    });
 });
 //Get by Paid Status....
 app.get('/appointment/paid/:id', (req, res) => {
@@ -107,11 +164,11 @@ app.get('/appointment/paid/:id', (req, res) => {
     res.send('Here are all the paid Appointments');
 });
 //Get Remaining Bill of patient....
-app.get('/patient/remains/:id', (req, res) => {
+app.get('/patient/:id/remains', (req, res) => {
     let id = req.params.id;
     res.send('Remains of ' + id + ' Are....');
 });
 // 12 & 13 Reamining....
 app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at https://localhost:${port}`);
+    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
