@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, response, Response } from 'express';
 import dotenv from 'dotenv';
 const mongoose = require('mongoose');
 
@@ -201,20 +201,38 @@ app.get('/appointment/:date/:month/:year', (req: Request, res: Response) => {
 
 })
 
-//Get by Paid Status....
-app.get('/appointment/paid/:id', (req: Request, res: Response) => {
-  let booled = req.params.id;
-  if (booled == 'false') {
-    res.send('Here are all the unpaid Appointments')
-    return false;
-  }
-  res.send('Here are all the paid Appointments')
+//Get by unpaid Status....
+app.get('/appointment/unpaid', (req: Request, res: Response) => {
+  // let booled = req.params.id;
+  Patient.find({ 'appointment.feePaid': false })
+    .then((result: Response) => {
+      res.send(result);
+    })
+  // Patient.find({ 'appointment.feePaid':  })
+  //   .then((result: Response) => {
+  //     res.send(result);
+  //   })
 })
 
 //Get Remaining Bill of patient....
 app.get('/patient/:id/remains', (req: Request, res: Response) => {
   let id = req.params.id;
-  res.send('Remains of ' + id + ' Are....')
+
+  Patient.find({ _id: id })
+    .then((result: Response) => {
+      return res.send(result[0].appointment[0].amount);
+    })
+
+})
+
+// Get popular pet type 
+app.get('/patient/popular', (req: Request, res: Response) => {
+  Patient.find().then((result: Response) => {
+    return res.send(result[0].petName);
+  })
+  result.forEach(petName => {
+
+  });
 })
 
 // 12 & 13 Reamining....

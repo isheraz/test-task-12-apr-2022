@@ -154,19 +154,33 @@ app.get('/appointment/:date/:month/:year', (req, res) => {
         res.send(results);
     });
 });
-//Get by Paid Status....
-app.get('/appointment/paid/:id', (req, res) => {
-    let booled = req.params.id;
-    if (booled == 'false') {
-        res.send('Here are all the unpaid Appointments');
-        return false;
-    }
-    res.send('Here are all the paid Appointments');
+//Get by unpaid Status....
+app.get('/appointment/unpaid', (req, res) => {
+    // let booled = req.params.id;
+    Patient.find({ 'appointment.feePaid': false })
+        .then((result) => {
+        res.send(result);
+    });
+    // Patient.find({ 'appointment.feePaid':  })
+    //   .then((result: Response) => {
+    //     res.send(result);
+    //   })
 });
 //Get Remaining Bill of patient....
 app.get('/patient/:id/remains', (req, res) => {
     let id = req.params.id;
-    res.send('Remains of ' + id + ' Are....');
+    Patient.find({ _id: id })
+        .then((result) => {
+        return res.send(result[0].appointment[0].amount);
+    });
+});
+// Get popular pet type 
+app.get('/patient/popular', (req, res) => {
+    Patient.find().then((result) => {
+        return res.send(result[0].petName);
+    });
+    result.forEach(petName => {
+    });
 });
 // 12 & 13 Reamining....
 app.listen(port, () => {
