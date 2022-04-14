@@ -61,8 +61,14 @@ app.post('/patient/add', (req: Request, res: Response) => {
   let input = req.body;
   console.log(input);
 
-  let patient = new Patient({
+  if(!(input.petName &&
+    input.petType &&
+    input.ownerName &&
+    input.ownerAddress &&
+    input.ownerPhoneNumber))
+    res.send(404) //Missing Fields!
 
+  let patient = new Patient({
     petName: input.petName,
     petType: input.petType,
     ownerName: input.ownerName,
@@ -70,9 +76,8 @@ app.post('/patient/add', (req: Request, res: Response) => {
     ownerPhoneNumber: input.ownerPhoneNumber
 
   })
-
   patient.save()
-
+  //Successfully Saved!
 });
 
 //Get All Patients.....
@@ -83,11 +88,11 @@ app.get('/patient', (req: Request, res: Response) => {
   })
 });
 
-// [OPTIONAL]: Get A Specific Patient!
-app.get('/patient/:id', (req: Request, res: Response) => {
-  let id = req.params.id
-  res.send('Patient ' + id);
-});
+// // [OPTIONAL]: Get A Specific Patient!
+// app.get('/patient/:id', (req: Request, res: Response) => {
+//   let id = req.params.id
+//   res.send('Patient ' + id);
+// });
 
 //Update Patient Details...
 app.patch('/patient/:id', (req: Request, res: Response) => {
@@ -121,12 +126,10 @@ app.delete('/patient/:id', (req: Request, res: Response) => {
   })
 });
 
-// [OPTIONAL]: Get All Appointments!
-app.get('/appointment', (req: Request, res: Response) => {
-  res.send('All Appointments Are....')
-});
-
-//---------------------------Done-Till-Here------------------------//
+// // [OPTIONAL]: Get All Appointments!
+// app.get('/appointment', (req: Request, res: Response) => {
+//   res.send('All Appointments Are....')
+// });
 
 //Add an appoinment to an existing Patient...
 app.post('/patient/:id/appointment', (req: Request, res: Response) => {
