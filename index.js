@@ -9,8 +9,7 @@ const mongoose = require('mongoose');
 const Patient = require('./models/patient.js');
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const port = process.env.PORT;
-let pkincrement = 0;
+const port = 8000;
 app.use(express_1.default.json());
 //---------//
 // TO DO...//
@@ -30,9 +29,9 @@ mongoose.Promise = global.Promise;
 mongoose.connect(dbConfig, {
     useNewUrlParser: true
 }).then(() => {
-    console.log("Successfully connected to the database");
+    // console.log("Successfully connected to the database");
 }).catch(() => {
-    console.log('Could not connect to the database. Exiting now... ');
+    // console.log('Could not connect to the database. Exiting now... ');
     process.exit();
 });
 //asd
@@ -52,17 +51,13 @@ app.post('/patient/add', (req, res) => {
     let input = req.body;
     console.log(input);
     let patient = new Patient({
-        _id: pkincrement,
         petName: input.petName,
         petType: input.petType,
         ownerName: input.ownerName,
         ownerAddress: input.ownerAddress,
         ownerPhoneNumber: input.ownerPhoneNumber
     });
-    patient.save().then(() => {
-        console.log('Saved Patient!');
-        pkincrement++;
-    });
+    patient.save();
 });
 //Get All Patients.....
 app.get('/patient', (req, res) => {
@@ -161,28 +156,40 @@ app.get('/appointment/unpaid', (req, res) => {
         .then((result) => {
         res.send(result);
     });
-    // Patient.find({ 'appointment.feePaid':  })
-    //   .then((result: Response) => {
-    //     res.send(result);
-    //   })
 });
 //Get Remaining Bill of patient....
 app.get('/patient/:id/remains', (req, res) => {
     let id = req.params.id;
     Patient.find({ _id: id })
         .then((result) => {
-        return res.send(result[0].appointment[0].amount);
+        if (result[0].appointment === true) {
+            return res.send(result[0].appointment[0].amount);
+        }
+        return res.send('No Remaining Bills!');
     });
 });
-// Get popular pet type 
-app.get('/patient/popular', (req, res) => {
-    Patient.find().then((result) => {
-        return res.send(result[0].petName);
-    });
-    result.forEach(petName => {
-    });
+// Get popular pet type .... // Fixing...
+app.get('/patient/popular/get', (req, res) => {
+    // API URL, Under Development!
+    // let LocalArray = [];
+    // let LocalVote = [];
+    // let vote = 0;
+    // let VoteSpaces = new Array(50).fill(0);
+    // Patient.find().then((result: Response) => {
+    //   result.forEach(petFromJSON => {
+    //     LocalArray.forEach((petFromLocal, index) => {
+    //       if(petFromJSON.petType != petFromLocal && index == LocalArray.length - 1)
+    //         LocalArray.push(petFromJSON)
+    //       else{
+    //         let LocalIndex = LocalArray.indexOf(petFromLocal)
+    //         VoteSpaces[LocalIndex]++;
+    //       }
+    //     })
+    //   });
+    //   let winner = LocalArray.indexOf(Math.max(...VoteSpaces))
+    //   res.send(LocalArray[winner]);
+    // })
+    res.send(101);
 });
 // 12 & 13 Reamining....
-app.listen(port, () => {
-    console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
+exports.default = app;

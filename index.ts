@@ -1,5 +1,6 @@
 import express, { Express, Request, response, Response } from 'express';
 import dotenv from 'dotenv';
+import { arrayBuffer } from 'stream/consumers';
 const mongoose = require('mongoose');
 
 const Patient = require('./models/patient.js')
@@ -7,8 +8,7 @@ const Patient = require('./models/patient.js')
 dotenv.config();
 
 const app: Express = express();
-const port = process.env.PORT;
-let pkincrement = 0;
+const port = 8000;
 
 app.use(express.json());
 
@@ -36,9 +36,9 @@ mongoose.Promise = global.Promise;
 mongoose.connect(dbConfig, {
   useNewUrlParser: true
 }).then(() => {
-  console.log("Successfully connected to the database");
+  // console.log("Successfully connected to the database");
 }).catch(() => {
-  console.log('Could not connect to the database. Exiting now... ');
+  // console.log('Could not connect to the database. Exiting now... ');
   process.exit();
 });
 //asd
@@ -47,7 +47,6 @@ mongoose.connect(dbConfig, {
 app.get('/', (req: Request, res: Response) => {
   res.send('Welcome to Pet Hospital API');
 });
-
 
 //Add a new patients.....
 app.post('/patient/add', (req: Request, res: Response) => {
@@ -64,7 +63,6 @@ app.post('/patient/add', (req: Request, res: Response) => {
 
   let patient = new Patient({
 
-    _id: pkincrement,
     petName: input.petName,
     petType: input.petType,
     ownerName: input.ownerName,
@@ -73,10 +71,7 @@ app.post('/patient/add', (req: Request, res: Response) => {
 
   })
 
-  patient.save().then(() => {
-    console.log('Saved Patient!');
-    pkincrement++;
-  })
+  patient.save()
 
 });
 
@@ -208,10 +203,6 @@ app.get('/appointment/unpaid', (req: Request, res: Response) => {
     .then((result: Response) => {
       res.send(result);
     })
-  // Patient.find({ 'appointment.feePaid':  })
-  //   .then((result: Response) => {
-  //     res.send(result);
-  //   })
 })
 
 //Get Remaining Bill of patient....
@@ -220,23 +211,53 @@ app.get('/patient/:id/remains', (req: Request, res: Response) => {
 
   Patient.find({ _id: id })
     .then((result: Response) => {
-      return res.send(result[0].appointment[0].amount);
+      if(result[0].appointment === true){
+        return res.send(result[0].appointment[0].amount);
+      }
+      return res.send('No Remaining Bills!')
     })
 
 })
 
-// Get popular pet type 
-app.get('/patient/popular', (req: Request, res: Response) => {
-  Patient.find().then((result: Response) => {
-    return res.send(result[0].petName);
-  })
-  result.forEach(petName => {
+// Get popular pet type .... // Fixing...
+app.get('/patient/popular/get', (req: Request, res: Response) => {
+  
+  // API URL, Under Development!
 
-  });
+  // let LocalArray = [];
+  // let LocalVote = [];
+  // let vote = 0;
+  // let VoteSpaces = new Array(50).fill(0);
+
+  // Patient.find().then((result: Response) => {
+
+  //   result.forEach(petFromJSON => {
+     
+
+  //     LocalArray.forEach((petFromLocal, index) => {
+        
+
+  //       if(petFromJSON.petType != petFromLocal && index == LocalArray.length - 1)
+  //         LocalArray.push(petFromJSON)
+
+  //       else{
+  //         let LocalIndex = LocalArray.indexOf(petFromLocal)
+  //         VoteSpaces[LocalIndex]++;
+  //       }
+     
+  //     })
+
+
+  //   });
+ 
+  //   let winner = LocalArray.indexOf(Math.max(...VoteSpaces))
+  //   res.send(LocalArray[winner]);
+  
+  // })
+  
+  res.send(101);
 })
 
 // 12 & 13 Reamining....
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
+export default app;
