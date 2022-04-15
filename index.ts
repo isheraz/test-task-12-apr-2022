@@ -8,7 +8,7 @@ const Patient = require('./models/patient.js')
 dotenv.config();
 
 const app: Express = express();
-const port = 8000;
+const port: Number = 8000;
 
 app.use(express.json());
 
@@ -124,12 +124,23 @@ app.delete('/patient/:id', (req: Request, res: Response) => {
   Patient.findByIdAndDelete({ _id: identify }, input).then(() => {
     res.send('Deleted Patient number ' + identify + '\'s Details');
   })
+  .catch((err: Response) => {
+    res.send("Cant Find ID!");
+  })
 });
 
-// // [OPTIONAL]: Get All Appointments!
-// app.get('/appointment', (req: Request, res: Response) => {
-//   res.send('All Appointments Are....')
-// });
+// [OPTIONAL]: Get All Appointments!
+app.get('/appointment', (req: Request, res: Response) => {
+  let appointments = new Array;
+
+  Patient.find().then((result: Response) => {
+    result.forEach(indvObj => {
+        appointments.push(indvObj.appointment);
+    });
+    res.send(appointments);
+  })
+
+});
 
 //Add an appoinment to an existing Patient...
 app.post('/patient/:id/appointment', (req: Request, res: Response) => {
@@ -224,41 +235,34 @@ app.get('/patient/:id/remains', (req: Request, res: Response) => {
 
 // Get popular pet type .... // Fixing...
 app.get('/patient/popular/get', (req: Request, res: Response) => {
-  
-  // API URL, Under Development!
 
-  // let LocalArray = [];
-  // let LocalVote = [];
-  // let vote = 0;
-  // let VoteSpaces = new Array(50).fill(0);
+  Patient.find().then((result: Response) => {
 
-  // Patient.find().then((result: Response) => {
+    let LocalArray: any[] = new Array;
+    let VoteSpaces = new Array(10).fill(0);
+    
+    result.forEach(petJSON => LocalArray.push(petJSON.petType))
+    let pets = [...new Set(LocalArray)];
 
-  //   result.forEach(petFromJSON => {
-     
+    result.forEach(petJSON => {
 
-  //     LocalArray.forEach((petFromLocal, index) => {
+        pets.forEach((pet, index) => {
         
+            if(petJSON.petType === pet){
+                VoteSpaces[index]++;
+            }
 
-  //       if(petFromJSON.petType != petFromLocal && index == LocalArray.length - 1)
-  //         LocalArray.push(petFromJSON)
+        })
 
-  //       else{
-  //         let LocalIndex = LocalArray.indexOf(petFromLocal)
-  //         VoteSpaces[LocalIndex]++;
-  //       }
-     
-  //     })
+    })
 
+    VoteSpaces.length = pets.length;
+    let largestFromVotes = VoteSpaces.indexOf(Math.max(...VoteSpaces))
 
-  //   });
- 
-  //   let winner = LocalArray.indexOf(Math.max(...VoteSpaces))
-  //   res.send(LocalArray[winner]);
+  res.send(pets[largestFromVotes]);
   
-  // })
+  })
   
-  res.send(101);
 })
 
 // 12 & 13 Reamining....
