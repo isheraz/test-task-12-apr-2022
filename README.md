@@ -5,7 +5,7 @@
 
   <h1 align="center">Hospital API project!</h1>
 
-  <p align="center">
+  <p align="center" font-size="12px">
     An API system to manage your Pet Hospital!
   </p>
 </div>
