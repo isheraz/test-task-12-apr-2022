@@ -144,3 +144,14 @@ describe('GET /patient/:id/remains', () => {
     })
     
 })
+
+describe('GET /patient/popular/get', () => {
+
+    describe("Get's what is the most famous Pet!", () => {
+        test('Should Send the most famous pet name...', async () => {
+            const response = await supertest(app).get("/patient/popular/get").send();
+            expect(response.statusCode).toBe(200) 
+        })      
+    })
+    
+})
