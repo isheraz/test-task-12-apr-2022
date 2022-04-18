@@ -5,7 +5,6 @@ const router = express.Router();
 
 //Add a new patients.....
 router.post('/patient/add', (req: Request, res: Response) => {
-    res.send('Added a new Pet!');
     //Requires As Body....
     /* 1) Pet Name
        2) Pet Type
@@ -20,18 +19,19 @@ router.post('/patient/add', (req: Request, res: Response) => {
       input.petType &&
       input.ownerName &&
       input.ownerAddress &&
-      input.ownerPhoneNumber))
-      res.send(404) //Missing Fields!
-  
+      input.ownerPhoneNumber)){
+        res.send(400) //Missing Fields!
+      }
+      
     let patient = new Patient({
       petName: input.petName,
       petType: input.petType,
       ownerName: input.ownerName,
       ownerAddress: input.ownerAddress,
       ownerPhoneNumber: input.ownerPhoneNumber
-  
     })
     patient.save()
+    res.send(200);
     //Successfully Saved!
   });
   
@@ -58,10 +58,21 @@ router.post('/patient/add', (req: Request, res: Response) => {
       res.send('Cant Update _id');
       return false;
     }
-  
-    Patient.findByIdAndUpdate({ _id: identify }, input).then(() => {
-      return res.send('Updated Patient number ' + identify + '\'s Details');
-    })
+
+    // Generate a test case that ID doesnt exist.
+    
+    else if (Object.keys(input).length === 0) {
+      res.send(400) // The Body is empty!
+   }
+
+   else{
+     Patient.findByIdAndUpdate({ _id: identify }, input).then(() => {
+       return res.send('Updated Patient number '+identify+'\'s Details');
+     })
+     .catch((err) => {
+       res.send(404) //ID does not exist!
+     })
+   }
   
   });
   
@@ -80,7 +91,7 @@ router.post('/patient/add', (req: Request, res: Response) => {
       res.send('Deleted Patient number ' + identify + '\'s Details');
     })
     .catch((err: Response) => {
-      res.send("Cant Find ID!");
+      res.send(404);
     })
   });
   
@@ -104,19 +115,22 @@ router.get('/appointment', (req: Request, res: Response) => {
         2) Appointment End Time
         3) Description
         4) Fee paid (True / False)
-        5) Amount Paid */
+          4.1) Amount Paid */
   
     let identify = req.params.id;
     let inputArr = req.body;
   
     if (!(Object.prototype.toString.call(inputArr) == '[object Array]')) {
-      res.send('Error, Please Send an Array Containing The Appointments!')
+      res.send(403)
       return false;
     }
   
     Patient.findByIdAndUpdate({ _id: identify }, { appointment: inputArr }).then(() => {
       return res.send('Done Updating the appointments!');
-    });
+    })
+    .catch(() => {
+      res.send(404)
+    })
   
   });
   
@@ -125,7 +139,10 @@ router.get('/appointment', (req: Request, res: Response) => {
     let identify = req.params.id;
   
     Patient.findOne({ _id: identify }).then((result: Response) => {
-      res.send(result.appointment);
+      res.send(JSON.stringify(result.appointment));
+    })
+    .catch(() => {
+      res.send(404)
     })
   
   });
@@ -137,6 +154,9 @@ router.get('/appointment', (req: Request, res: Response) => {
   
     Patient.findByIdAndUpdate({ _id: identify }, { appointment: inputArr }).then(() => {
       return res.send('Done Updating the appointments!');
+    })
+    .catch( (err: Response) => {
+      res.send(404)
     });
   
   });
@@ -147,6 +167,8 @@ router.get('/appointment', (req: Request, res: Response) => {
   
     Patient.findByIdAndUpdate({ _id: identify }, { appointment: [] }).then(() => {
       return res.send('Done Updating the appointments!');
+    }).catch(( err: Response ) => {
+      res.send(404)
     });
   
   });
@@ -160,7 +182,16 @@ router.get('/appointment', (req: Request, res: Response) => {
     let dateSorted = date + '/' + month + '/' + year;
   
     Patient.findOne({ "appointment.day": dateSorted }).then((results: Response) => {
-      res.send(results);
+      if(results){
+        res.send(results)
+      }
+      else{
+        res.send(404);        
+      }
+
+    })
+    .catch((() => {
+    res.send(408)
     })
   
   })
